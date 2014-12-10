@@ -5,8 +5,8 @@ var DynamicUpdate = function () {
     this.name = "DynamicUpdate";
 };
 
-DynamicUpdate.prototype.test = function (onSuc, onErr) {
-    exec(onSuc, onErr, "DynamicUpdate", "test", []);
+DynamicUpdate.prototype.update = function (onSuccess, onError, url) {
+    exec(onSuccess, onError, "DynamicUpdate", "update", [{"url": url}]);
 };
 
 module.exports = new DynamicUpdate();
