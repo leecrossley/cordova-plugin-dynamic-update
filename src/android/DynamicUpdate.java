@@ -18,7 +18,9 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 import android.content.Context;
+import android.content.res.AssetManager;
 import android.os.Build;
+import android.os.Environment;
 import android.util.Log;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -42,38 +44,44 @@ public class DynamicUpdate extends CordovaPlugin {
     public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) throws JSONException {
         callback = callbackContext;
 
-        if (!action.equals("update")) {
-            PluginResult result = new PluginResult(PluginResult.Status.ERROR, "Unknown action");
-            callback.sendPluginResult(result);
-            return false;
-        }
-
         www = context.getFilesDir().getPath() + "/";
-        downloadZip = www + "update.zip";
-        indexHtml = www + "index.html";
 
-        JSONObject json = args.getJSONObject(0);
-        String url = getJSONProperty(json, "url");
+        if (action.equals("download")) {
+            downloadZip = www + "update.zip";
 
-        try {
-            this.download(url);
-        } catch (Exception e) {
-            String errorMessage = "Unable to download file from: " + url;
-            PluginResult result = new PluginResult(PluginResult.Status.ERROR, errorMessage);
-            callback.sendPluginResult(result);
-            return false;
+            JSONObject json = args.getJSONObject(0);
+            String url = getJSONProperty(json, "url");
+
+            try {
+                this.download(url);
+                PluginResult result = new PluginResult(PluginResult.Status.OK);
+                callback.sendPluginResult(result);
+                return true;
+            } catch (Exception e) {
+                PluginResult result = new PluginResult(PluginResult.Status.ERROR, e.getMessage());
+                callback.sendPluginResult(result);
+                return false;
+            }
         }
 
-        File indexFile = new File(indexHtml);
+        if (action.equals("deploy")) {
+            indexHtml = www + "index.html";
 
-        if (!indexFile.exists()) {
-            PluginResult result = new PluginResult(PluginResult.Status.ERROR, "index.html not found");
-            callback.sendPluginResult(result);
-            return false;
+            File indexFile = new File(indexHtml);
+
+            if (!indexFile.exists()) {
+                PluginResult result = new PluginResult(PluginResult.Status.ERROR, "index.html not found");
+                callback.sendPluginResult(result);
+                return false;
+            }
+
+            super.webView.loadUrl("file://" + indexHtml);
+            return true;
         }
 
-        super.webView.loadUrl("file://" + indexHtml);
-        return true;
+        PluginResult result = new PluginResult(PluginResult.Status.ERROR, "Unknown action");
+        callback.sendPluginResult(result);
+        return false;
     }
 
     private String getJSONProperty(JSONObject json, String property) throws JSONException {
@@ -144,8 +152,37 @@ public class DynamicUpdate extends CordovaPlugin {
 
         zip.close();
 
+        copyStream(context.getAssets().open("www/cordova.js"),
+        new FileOutputStream(www + "cordova.js"));
+
+        copyStream(context.getAssets().open("www/cordova_plugins.js"),
+        new FileOutputStream(www + "cordova_plugins.js"));
+
+        this.copyDir("plugins");
+
         PluginResult result = new PluginResult(PluginResult.Status.OK);
         callback.sendPluginResult(result);
+    }
+
+    private void copyDir(String path) throws Exception {
+        AssetManager assetManager = context.getAssets();
+        String assets[] = assetManager.list("www/" + path);
+
+        if (assets.length == 0) {
+            copyStream(context.getAssets().open("www/" + path),
+            new FileOutputStream(www + path));
+            return;
+        }
+
+        File dir = new File(www + path);
+
+        if (!dir.exists()) {
+            dir.mkdir();
+        }
+
+        for (int i = 0; i < assets.length; i++) {
+            copyDir(path + "/" + assets[i]);
+        }
     }
 
     private void copyStream(InputStream in, OutputStream out) throws IOException {
