@@ -1,0 +1,38 @@
+{
+  "name": "cordova-plugin-dynamic-update",
+  "version": "0.2.0",
+  "author": "Lee Crossley <leee@hotmail.co.uk> (http://ilee.co.uk/)",
+  "description": "Cordova Plugin to dynamically update the app www directory.",
+  "cordova": {
+    "id": "cordova-plugin-dynamic-update",
+    "platforms": [
+      "android"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leecrossley/cordova-plugin-dynamic-update.git"
+  },
+  "keywords": [
+    "cordova",
+    "update",
+    "dynamic",
+    "www",
+    "public",
+    "zip",
+    "ecosystem:cordova",
+    "cordova-android"
+  ],
+  "engines": [
+    {
+      "name": "cordova",
+      "version": ">=3.0.0"
+    }
+  ],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/leecrossley/cordova-plugin-dynamic-update/issues"
+  },
+  "homepage": "https://github.com/leecrossley/cordova-plugin-dynamic-update#readme"
+}
